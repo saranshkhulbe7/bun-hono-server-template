@@ -1,6 +1,7 @@
 import { type Context } from 'hono';
 import { ZodError } from 'zod';
-import { ApiError } from '../utils/ApiError';
+import { ApiError } from '../utils/api/ApiError';
+import { dispatchError } from '../utils/errors/errorDispatcher';
 
 type ErrorResponse = {
   message: string;
@@ -9,6 +10,7 @@ type ErrorResponse = {
 // Error Handler
 export const errorHandler = (c: Context) => {
   const err = c.error;
+  dispatchError(err ?? c.error, { subsystem: 'ERROR_HANDLER' });
   let error: ApiError;
 
   if (err instanceof ApiError) {

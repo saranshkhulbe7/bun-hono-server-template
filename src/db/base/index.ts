@@ -1,5 +1,8 @@
-import { Schema, Document, model as mongooseModel, Model } from 'mongoose';
+import mongoose, { Schema, Document, model as mongooseModel, Model } from 'mongoose';
 import { generateSoftDelete } from './delete-logic';
+import { unifiedValidationPlugin } from '../plugins/unifiedValidation';
+
+mongoose.plugin(unifiedValidationPlugin);
 
 // Define base schema fields
 const baseSchemaFields = {

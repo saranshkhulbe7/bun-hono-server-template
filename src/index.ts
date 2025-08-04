@@ -1,60 +1,28 @@
-import { prometheus } from '@hono/prometheus';
-import { Hono } from 'hono';
-import { serveStatic } from 'hono/bun';
-import { cors } from 'hono/cors';
-import { csrf } from 'hono/csrf';
-import { logger } from 'hono/logger';
-import { poweredBy } from 'hono/powered-by';
-import { prettyJSON } from 'hono/pretty-json';
-import { secureHeaders } from 'hono/secure-headers';
-import connectDB from './db/connect';
-import { errorHandler, notFound } from './middlewares';
-import { routes } from './routes';
+process.on('uncaughtException', (err) => {
+  dispatchError(err, { subsystem: 'UNCAUGHT_EXCEPTION' });
+});
+process.on('unhandledRejection', (reason) => {
+  dispatchError(reason, { subsystem: 'UNHANDLED_REJECTION' });
+});
+
 import { parsedEnv } from '../env';
-import { createAdminService } from './services/admin';
+import { createApp } from './app';
+import connectDB from './db/connect';
+import { dispatchError } from './utils/errors/errorDispatcher';
 
-export const cookieOptions = {
-  httpOnly: true,
-  sameSite: 'None',
-  secure: true,
-} as const;
-const app = new Hono();
-// app.basePath('/api/v1');
-parsedEnv();
-await connectDB();
+try {
+  parsedEnv();
+  await connectDB();
+} catch (bootErr) {
+  dispatchError(bootErr, { subsystem: 'BOOT' });
+  console.error('[BOOT] unrecoverable error – shutting down:', bootErr);
+  process.exit(1);
+}
 
-const { printMetrics, registerMetrics } = prometheus();
-const origins = process.env.ORIGINS ? process.env.ORIGINS.split(',') : [];
-app.use(poweredBy());
-app.use(logger());
-app.use('*', registerMetrics);
-app.get('/metrics', printMetrics);
-app.use(secureHeaders());
-app.use(prettyJSON());
-app.use(
-  cors({
-    origin: origins,
-    credentials: true,
-    allowHeaders: ['Content-Type', 'Authorization'],
-  })
-);
-
-app.use(csrf());
-app.use('/assets/*', serveStatic({ path: './assets' }));
-
-app.route('/', routes);
-app.onError((err, c) => {
-  const error = errorHandler(c);
-  return error;
-});
-
-app.notFound((c) => {
-  const error = notFound(c);
-  return error;
-});
+const app = createApp();
 
 export default {
-  port: +(Bun.env.PORT || 4500),
+  port: +(process.env.PORT || 4500),
   fetch: app.fetch,
 };
 

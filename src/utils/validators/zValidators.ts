@@ -1,3 +1,4 @@
+// src/core/utils/zValidators.ts
 import { zValidator } from '@hono/zod-validator';
 
 export function zJsonValidator(schema: any) {
@@ -10,7 +11,15 @@ export function zJsonValidator(schema: any) {
 
 export function zParamsValidator(schema: any) {
   return zValidator('param', schema, (result, c) => {
-    console.log('param details', result.data);
+    // removed debug logging
+    if (!result.success) {
+      throw result.error;
+    }
+  });
+}
+
+export function zQueryValidator(schema: any) {
+  return zValidator('query', schema, (result, c) => {
     if (!result.success) {
       throw result.error;
     }

@@ -1,21 +1,29 @@
-import { z, ZodError } from 'zod';
+import { z, ZodError } from "zod";
 
+export const ENVS = {
+  LOCAL: "local",
+  DEVELOPMENT: "development",
+  PRODUCTION: "production",
+};
+export const zEnvEnum = z.enum([ENVS.LOCAL, ENVS.DEVELOPMENT, ENVS.PRODUCTION]);
+
+export type EnvEnumType = z.infer<typeof zEnvEnum>;
 const envVariables = z.object({
   // SERVER
-  NODE_ENV: z.enum(['development', 'production', 'test']),
-  PORT: z.string(),
-
+  // NODE_ENV: zEnvEnum,
+  // PORT: z.string(),
   // DB
-  MONGO_URI: z.string().url(), // Validate it's a valid Mongo URI
-
-  ORIGINS: z.string(),
-
+  // MONGO_URI: z.string().url(), // Validate it's a valid Mongo URI
+  // REDIS_URL: z.string().url(),
+  // VALIDATOR_REDIS_URL: z.string().url(),
+  // ORIGINS: z.string(),
+  // ALL_SERVICE_PASSCODE: z.string(),
+  // SENDGRID_API_KEY: z.string(),
   // DO_SPACES_ENDPOINT: z.string(),
   // DO_SPACES_BUCKET: z.string(),
   // DO_SPACES_KEY: z.string(),
   // DO_SPACES_SECRET: z.string(),
   // DO_SPACES_REGION: z.string(),
-
   // ADMIN_JWT_SECRET: z.string(),
 });
 
@@ -28,13 +36,14 @@ declare global {
 export const parsedEnv = () => {
   try {
     envVariables.parse(process.env);
+    console.log(process.env);
   } catch (e) {
     const errors = (e as ZodError).errors.map((issue: any) => ({
-      field: issue.path.join('.'),
+      field: issue.path.join("."),
       errorMessage: issue.message,
     }));
     console.log({
-      message: 'Invalid environment variables',
+      message: "Invalid environment variables",
       errors,
     });
     process.exit(1);

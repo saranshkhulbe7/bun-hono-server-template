@@ -174,3 +174,9 @@ dist
 
 # Finder (MacOS) folder config
 .DS_Store
+
+logs/
+**/logs/
+
+**/combined.txt
+
