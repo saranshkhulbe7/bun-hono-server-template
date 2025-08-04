@@ -1,4 +1,4 @@
-# xpoll-server
+# sample-server
 
 To install dependencies:
 
